@@ -1,6 +1,6 @@
 import { Space } from 'antd'
 import { CompositeDecorator, convertFromRaw, DraftHandleValue, Editor, EditorState, RichUtils } from 'draft-js'
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useRef, useState } from 'react'
 import { BlockStyleControls } from '../block-style-controls'
 import { InlineStyleControls } from '../inline-style-controls'
 import { LinkControl } from '../link-control'
@@ -39,23 +39,31 @@ export function BasicTextEditor (): React.ReactElement {
     }
   }, [])
 
+  const editorRef = useRef<Editor>(null)
+
+  const setStateAndFocus = useCallback((editorState: EditorState): void => {
+    setEditorState(editorState)
+    setTimeout(() => editorRef.current?.focus(), 0)
+  }, [])
+
   return (
     <div className={css.container}>
       <Space>
         <InlineStyleControls
           editorState={editorState}
-          onChange={setEditorState}
+          onChange={setStateAndFocus}
         />
         <LinkControl
           editorState={editorState}
-          onChange={setEditorState}
+          onChange={setStateAndFocus}
         />
         <BlockStyleControls
           editorState={editorState}
-          onChange={setEditorState}
+          onChange={setStateAndFocus}
         />
       </Space>
       <Editor
+        ref={editorRef}
         editorKey='some-key'
         editorState={editorState}
         onChange={setEditorState}
