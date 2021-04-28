@@ -12,3 +12,23 @@
   display: flex;
   flex-direction: column;
 }
+
+.note-content {
+  background: #fff;
+  padding-left: 16px;
+
+  display: flex;
+  flex-direction: column;
+
+  > * {
+    margin: 8px 0;
+
+    &:first-child {
+      margin-top: 0;
+    }
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}

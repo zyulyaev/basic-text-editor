@@ -1,6 +1,8 @@
 import { Space } from 'antd'
 import { CompositeDecorator, convertFromRaw, DraftHandleValue, Editor, EditorState, RichUtils } from 'draft-js'
-import React, { useCallback, useRef, useState } from 'react'
+import React, { useCallback, useRef } from 'react'
+import { getEditorState } from '../../store/selectors'
+import { useDispatch, useSelector } from '../../store/use-store'
 import { BlockStyleControls } from '../block-style-controls'
 import { InlineStyleControls } from '../inline-style-controls'
 import { LinkControl } from '../link-control'
@@ -23,28 +25,34 @@ const emptyContentState = convertFromRaw({
 })
 
 export function BasicTextEditor (): React.ReactElement {
-  const [editorState, setEditorState] = useState<EditorState>(() => EditorState.createWithContent(
+  const editorState = useSelector(getEditorState) ?? EditorState.createWithContent(
     emptyContentState,
     new CompositeDecorator([
       linkDecorator
     ])
-  ))
+  )
+  const dispatch = useDispatch()
+
+  const setEditorStateAndStore = useCallback((editorState: EditorState): void => {
+    dispatch({ type: 'update-editor-state', editorState })
+  }, [dispatch])
+
   const handleKeyCommand = useCallback((command: string, editorState: EditorState): DraftHandleValue => {
     const newState = RichUtils.handleKeyCommand(editorState, command)
     if (newState != null) {
-      setEditorState(newState)
+      setEditorStateAndStore(newState)
       return 'handled'
     } else {
       return 'not-handled'
     }
-  }, [])
+  }, [setEditorStateAndStore])
 
   const editorRef = useRef<Editor>(null)
 
   const setStateAndFocus = useCallback((editorState: EditorState): void => {
-    setEditorState(editorState)
+    setEditorStateAndStore(editorState)
     setTimeout(() => editorRef.current?.focus(), 0)
-  }, [])
+  }, [setEditorStateAndStore])
 
   return (
     <div className={css.container}>
@@ -66,7 +74,7 @@ export function BasicTextEditor (): React.ReactElement {
         ref={editorRef}
         editorKey='some-key'
         editorState={editorState}
-        onChange={setEditorState}
+        onChange={setEditorStateAndStore}
         handleKeyCommand={handleKeyCommand}
       />
     </div>
